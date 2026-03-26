@@ -1,11 +1,42 @@
 <!doctype html>
 <html lang="ru">
   <head>
-    <meta charset="utf-8">
+    <meta charset="utf-8" />
     <title>Review Analyzer</title>
   </head>
   <body>
     <h1>Review Analyzer</h1>
     <p>Здесь будет веб-приложение для сбора и анализа отзывов.</p>
+
+    <h2>Добавить отзыв</h2>
+    <form method="post">
+      <div>
+        <label for="text">Текст отзыва</label><br />
+        <textarea id="text" name="text" rows="4" cols="50" required></textarea>
+      </div>
+
+      <div>
+        <label for="author">Автор (опционально)</label><br />
+        <input id="author" name="author" type="text" />
+      </div>
+
+      <div>
+        <button type="submit">Сохранить отзыв</button>
+      </div>
+    </form>
+
+    <h2>Список отзывов</h2>
+    {% if reviews %}
+      <ul>
+        {% for review in reviews %}
+          <li>
+            <strong>{{ review.author }}:</strong>
+            {{ review.text }}
+          </li>
+        {% endfor %}
+      </ul>
+    {% else %}
+      <p>Отзывов пока нет. Добавьте первый!</p>
+    {% endif %}
   </body>
 </html>
