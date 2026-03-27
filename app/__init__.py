@@ -37,7 +37,10 @@ def init_db(app):
         CREATE TABLE IF NOT EXISTS reviews (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             text TEXT NOT NULL,
-            author TEXT
+            author TEXT,
+            rating INTEGER,                         -- 1..5
+            created_at TEXT NOT NULL
+                DEFAULT current_timestamp           -- дата/время добавления
         )
         """
     )
