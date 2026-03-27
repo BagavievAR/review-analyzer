@@ -21,6 +21,16 @@
       </div>
 
       <div>
+        <label for="rating">Оценка</label><br />
+        <select id="rating" name="rating">
+          <option value="">Без оценки</option>
+          {% for r in range(1, 6) %}
+            <option value="{{ r }}">{{ r }}</option>
+            {% endfor %}
+        </select>
+      </div>
+
+      <div>
         <button type="submit">Сохранить отзыв</button>
       </div>
     </form>
@@ -30,8 +40,13 @@
       <ul>
         {% for review in reviews %}
           <li>
-            <strong>{{ review.author }}:</strong>
-            {{ review.text }}
+            <strong>{{ review["author"] }}:</strong>
+            {{ review["text"] }}
+            {% if review["rating"] is not none %}
+            — Оценка: {{ review["rating"] }}/5
+            {% endif %}
+            <br />
+            <small>Добавлен: {{ review["created_at"] }}</small>
           </li>
         {% endfor %}
       </ul>
