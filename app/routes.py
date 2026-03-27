@@ -1,8 +1,7 @@
-from flask import Blueprint, render_template, request, redirect, url_for
+from flask import Blueprint, render_template, request, redirect, url_for, current_app
+from . import get_db_connection
 
 bp = Blueprint("main", __name__)
-
-reviews = []
 
 @bp.route("/", methods=["GET", "POST"])
 def index():
@@ -11,12 +10,21 @@ def index():
         author = request.form.get("author", "").strip()
 
         if text:
-            reviews.append(
-                {
-                    "text": text,
-                    "author": author or "Аноним",
-                }
+            conn = get_db_connection(current_app)
+            cur = conn.cursor()
+            cur.execute(
+                "INSERT INTO reviews (text, author) VALUES (?, ?)",
+                (text, author or "Аноним"),
             )
+            conn.commit()
+            conn.close()
+
         return redirect(url_for("main.index"))
 
-    return render_template("index.html", reviews=reviews)
+    conn = get_db_connection(current_app)
+    cur = conn.cursor()
+    cur.execute("SELECT id, text, author FROM reviews ORDER BY id DESC")
+    rows = cur.fetchall()
+    conn.close()
+
+    return render_template("index.html", reviews=rows)
