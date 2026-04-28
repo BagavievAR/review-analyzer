@@ -64,17 +64,22 @@
    pip install -r requirements.txt
    ```
 
-4. Инициализировать базу данных:
+4. Скачать и установить spaCy-модель для русского языка:
+   ```bash
+   python -m spacy download ru_core_news_sm
+   ```
+
+5. Инициализировать базу данных:
    ```bash
    flask --app run init-db
    ```
 
-5. Запустить приложение:
+6. Запустить приложение:
    ```bash
    python run.py
    ```
 
-6. Открыть в браузере:
+7. Открыть в браузере:
    - http://127.0.0.1:5000/
 
 ## How to Run (Docker)
