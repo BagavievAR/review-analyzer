@@ -71,6 +71,11 @@
 
                     — Тональность: {{ review["sentiment"] }}
 
+                    {% if review["keywords"] %}
+                        <br>
+                        <em>Ключевые слова:</em> {{ review["keywords"] }}
+                    {% endif %}
+
                     <br>
                     <small>Добавлен: {{ review["created_at"] }}</small>
                 </li>

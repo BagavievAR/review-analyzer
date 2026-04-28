@@ -59,3 +59,31 @@ def analyze_sentiment(text):
         return "negative"
 
     return "neutral"
+
+
+def extract_keywords(text, limit=5):
+    doc = nlp(text.lower())
+    keywords = []
+    seen = set()
+    allowed_pos = {"NOUN", "ADJ", "PROPN"}
+
+    for token in doc:
+        if token.is_stop or token.is_punct or token.is_space:
+            continue
+
+        if token.pos_ not in allowed_pos:
+            continue
+
+        lemma = token.lemma_.lower().strip()
+
+        if len(lemma) < 3:
+            continue
+
+        if lemma not in seen:
+            seen.add(lemma)
+            keywords.append(lemma)
+
+        if len(keywords) >= limit:
+            break
+
+    return ", ".join(keywords)
