@@ -49,19 +49,52 @@ def index():
             conn.close()
 
             return redirect(url_for("main.index"))
+        
+    sentiment_filter = request.args.get("sentiment", "").strip()
+    rating_filter = request.args.get("rating", "").strip()
+    keyword_filter = request.args.get("keyword", "").strip()
+
+    query = """
+        SELECT id, text, author, rating, sentiment, keywords, created_at
+        FROM reviews
+        WHERE 1=1
+    """
+    params = []
+
+    if sentiment_filter:
+        query += " AND sentiment = ?"
+        params.append(sentiment_filter)
+
+    if rating_filter:
+        if rating_filter == "none":
+            query += " AND rating IS NULL"
+        else:
+            query += " AND rating = ?"
+            params.append(rating_filter)
+
+    if keyword_filter:
+        query += " AND (keywords LIKE ? OR text LIKE ?)"
+        keyword_like = f"%{keyword_filter}%"
+        params.extend([keyword_like, keyword_like])
+
+    query += " ORDER BY id DESC"
 
     conn = get_db_connection(current_app)
     cur = conn.cursor()
-    cur.execute(
-        "SELECT id, text, author, rating, sentiment, keywords, created_at "
-        "FROM reviews ORDER BY id DESC"
-    )
+    cur.execute(query, params)
     reviews = cur.fetchall()
     conn.close()
+
+    filters = {
+        "sentiment": sentiment_filter,
+        "rating": rating_filter,
+        "keyword": keyword_filter
+    }
 
     return render_template(
         "index.html",
         reviews=reviews,
         errors=errors,
         form_data=form_data,
+        filters=filters,
     )
