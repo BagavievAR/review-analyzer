@@ -1,57 +1,256 @@
 <!doctype html>
 <html lang="ru">
-  <head>
-    <meta charset="utf-8" />
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>Review Analyzer</title>
-  </head>
-  <body>
-    <h1>Review Analyzer</h1>
-    <p>Здесь будет веб-приложение для сбора и анализа отзывов.</p>
 
-    <h2>Добавить отзыв</h2>
-    <form method="post">
-      <div>
-        <label for="text">Текст отзыва</label><br />
-        <textarea id="text" name="text" rows="4" cols="50" required></textarea>
-      </div>
+    <link
+        href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+        rel="stylesheet"
+    >
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body class="app-body">
+    <main class="container py-4 py-md-5">
+        <section class="page-header mb-4">
+            <div class="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-3">
+                <div>
+                    <span class="badge text-bg-dark mb-2">Flask + spaCy + SQLite</span>
+                    <h1 class="display-6 fw-bold mb-2">Review Analyzer</h1>
+                    <p class="text-secondary mb-0">
+                        Веб-приложение для сбора, анализа и фильтрации пользовательских отзывов.
+                    </p>
+                </div>
+            </div>
+        </section>
 
-      <div>
-        <label for="author">Автор (опционально)</label><br />
-        <input id="author" name="author" type="text" />
-      </div>
+        {% if errors %}
+            <div class="alert alert-danger shadow-sm" role="alert">
+                <h2 class="h6 mb-2">Не удалось сохранить отзыв</h2>
+                <ul class="mb-0">
+                    {% for error in errors %}
+                        <li>{{ error }}</li>
+                    {% endfor %}
+                </ul>
+            </div>
+        {% endif %}
 
-      <div>
-        <label for="rating">Оценка</label><br />
-        <select id="rating" name="rating">
-          <option value="">Без оценки</option>
-          {% for r in range(1, 6) %}
-            <option value="{{ r }}">{{ r }}</option>
-            {% endfor %}
-        </select>
-      </div>
+        <div class="row g-4 mb-4">
+            <div class="col-12 col-xl-6">
+                <section class="card shadow-sm border-0 h-100 panel-card">
+                    <div class="card-body p-4">
+                        <h2 class="h4 mb-3">Добавить отзыв</h2>
 
-      <div>
-        <button type="submit">Сохранить отзыв</button>
-      </div>
-    </form>
+                        <form method="post" class="row g-3">
+                            <div class="col-12">
+                                <label for="text" class="form-label">Текст отзыва</label>
+                                <textarea
+                                    id="text"
+                                    name="text"
+                                    rows="5"
+                                    class="form-control"
+                                    required
+                                >{{ form_data.text }}</textarea>
+                            </div>
 
-    <h2>Список отзывов</h2>
-    {% if reviews %}
-      <ul>
-        {% for review in reviews %}
-          <li>
-            <strong>{{ review["author"] }}:</strong>
-            {{ review["text"] }}
-            {% if review["rating"] is not none %}
-            — Оценка: {{ review["rating"] }}/5
+                            <div class="col-12">
+                                <label for="author" class="form-label">Автор (опционально)</label>
+                                <input
+                                    id="author"
+                                    name="author"
+                                    type="text"
+                                    class="form-control"
+                                    value="{{ form_data.author }}"
+                                    placeholder="Например: Иван"
+                                >
+                            </div>
+
+                            <div class="col-12">
+                                <label for="rating" class="form-label">Оценка</label>
+                                <select id="rating" name="rating" class="form-select">
+                                    <option value="">Без оценки</option>
+                                    {% for r in range(1, 6) %}
+                                        <option
+                                            value="{{ r }}"
+                                            {% if form_data.rating == r|string %}selected{% endif %}
+                                        >
+                                            {{ r }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-primary px-4">
+                                    Сохранить отзыв
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+            </div>
+
+            <div class="col-12 col-xl-6">
+                <section class="card shadow-sm border-0 h-100 panel-card">
+                    <div class="card-body p-4">
+                        <div class="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-2 mb-3">
+                            <h2 class="h4 mb-0">Фильтровать отзывы</h2>
+                            <a href="{{ url_for('main.index') }}" class="btn btn-outline-secondary btn-sm">
+                                Сбросить фильтры
+                            </a>
+                        </div>
+
+                        <form method="get" class="row g-3">
+                            <div class="col-12 col-md-6">
+                                <label for="sentiment" class="form-label">Тональность</label>
+                                <select id="sentiment" name="sentiment" class="form-select">
+                                    <option value="">Все</option>
+                                    <option value="positive" {% if filters.sentiment == "positive" %}selected{% endif %}>
+                                        positive
+                                    </option>
+                                    <option value="neutral" {% if filters.sentiment == "neutral" %}selected{% endif %}>
+                                        neutral
+                                    </option>
+                                    <option value="negative" {% if filters.sentiment == "negative" %}selected{% endif %}>
+                                        negative
+                                    </option>
+                                </select>
+                            </div>
+
+                            <div class="col-12 col-md-6">
+                                <label for="rating_filter" class="form-label">Оценка</label>
+                                <select id="rating_filter" name="rating" class="form-select">
+                                    <option value="">Все</option>
+                                    <option value="none" {% if filters.rating == "none" %}selected{% endif %}>
+                                        Без оценки
+                                    </option>
+                                    {% for r in range(1, 6) %}
+                                        <option value="{{ r }}" {% if filters.rating == r|string %}selected{% endif %}>
+                                            {{ r }}
+                                        </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+
+                            <div class="col-12">
+                                <label for="keyword" class="form-label">Ключевое слово</label>
+                                <input
+                                    id="keyword"
+                                    name="keyword"
+                                    type="text"
+                                    class="form-control"
+                                    value="{{ filters.keyword }}"
+                                    placeholder="Например: доставка"
+                                >
+                            </div>
+
+                            <div class="col-12">
+                                <button type="submit" class="btn btn-outline-primary px-4">
+                                    Применить фильтры
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </section>
+            </div>
+        </div>
+
+        <section class="mb-3">
+            <div class="d-flex align-items-center justify-content-between gap-3 mb-3">
+                <h2 class="h3 mb-0">Список отзывов</h2>
+                <span class="badge rounded-pill text-bg-light reviews-counter">
+                    Найдено: {{ reviews|length }}
+                </span>
+            </div>
+
+            {% if reviews %}
+                <div class="row g-3">
+                    {% for review in reviews %}
+                        <div class="col-12">
+                            <article
+                                class="card shadow-sm border-0 review-card
+                                {% if review['sentiment'] == 'positive' %}
+                                    review-card-positive
+                                {% elif review['sentiment'] == 'negative' %}
+                                    review-card-negative
+                                {% else %}
+                                    review-card-neutral
+                                {% endif %}"
+                            >
+                                <div class="card-body p-4">
+                                    <div class="d-flex flex-column flex-md-row justify-content-between align-items-md-start gap-2 mb-3">
+                                        <div>
+                                            <h3 class="h5 mb-1">{{ review["author"] }}</h3>
+                                            <p class="text-secondary small mb-0">
+                                                Добавлен: {{ review["created_at"] }}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <p class="review-text mb-3">{{ review["text"] }}</p>
+
+                                    <div class="d-flex flex-wrap gap-2 align-items-center">
+                                        {% if review["rating"] is not none %}
+                                            {% if review["rating"] >= 4 %}
+                                                <span class="badge rounded-pill text-bg-success">
+                                                    Оценка: {{ review["rating"] }}/5
+                                                </span>
+                                            {% elif review["rating"] == 3 %}
+                                                <span class="badge rounded-pill text-bg-warning text-dark">
+                                                    Оценка: {{ review["rating"] }}/5
+                                                </span>
+                                            {% else %}
+                                                <span class="badge rounded-pill text-bg-danger">
+                                                    Оценка: {{ review["rating"] }}/5
+                                                </span>
+                                            {% endif %}
+                                        {% else %}
+                                            <span class="badge rounded-pill text-bg-secondary">
+                                                Без оценки
+                                            </span>
+                                        {% endif %}
+
+                                        {% if review["sentiment"] == "positive" %}
+                                            <span class="badge rounded-pill text-bg-success">
+                                                Тональность: positive
+                                            </span>
+                                        {% elif review["sentiment"] == "negative" %}
+                                            <span class="badge rounded-pill text-bg-danger">
+                                                Тональность: negative
+                                            </span>
+                                        {% else %}
+                                            <span class="badge rounded-pill text-bg-warning text-dark">
+                                                Тональность: neutral
+                                            </span>
+                                        {% endif %}
+
+                                        {% if review["keywords"] %}
+                                            <span class="badge rounded-pill text-bg-light text-dark keyword-badge">
+                                                Ключевые слова: {{ review["keywords"] }}
+                                            </span>
+                                        {% endif %}
+                                    </div>
+                                </div>
+                            </article>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="card shadow-sm border-0 empty-state">
+                    <div class="card-body p-4 p-md-5 text-center">
+                        <h3 class="h4 mb-2">Отзывы не найдены</h3>
+                        <p class="text-secondary mb-0">
+                            Попробуйте изменить фильтры или добавить новый отзыв.
+                        </p>
+                    </div>
+                </div>
             {% endif %}
-            <br />
-            <small>Добавлен: {{ review["created_at"] }}</small>
-          </li>
-        {% endfor %}
-      </ul>
-    {% else %}
-      <p>Отзывов пока нет. Добавьте первый!</p>
-    {% endif %}
-  </body>
+        </section>
+    </main>
+
+    <script
+        src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"
+    ></script>
+</body>
 </html>
