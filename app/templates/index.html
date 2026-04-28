@@ -56,6 +56,49 @@
         </div>
     </form>
 
+    <h2>Фильтровать отзывы</h2>
+
+        <form method="get">
+        <div>
+            <label for="sentiment">Тональность</label><br>
+            <select id="sentiment" name="sentiment">
+                <option value="">Все</option>
+                <option value="positive" {% if filters.sentiment == "positive" %}selected{% endif %}>positive</option>
+                <option value="neutral" {% if filters.sentiment == "neutral" %}selected{% endif %}>neutral</option>
+                <option value="negative" {% if filters.sentiment == "negative" %}selected{% endif %}>negative</option>
+            </select>
+        </div>
+
+        <div>
+            <label for="rating_filter">Оценка</label><br>
+            <select id="rating_filter" name="rating">
+                <option value="">Все</option>
+                <option value="none" {% if filters.rating == "none" %}selected{% endif %}>Без оценки</option>
+                {% for r in range(1, 6) %}
+                    <option value="{{ r }}" {% if filters.rating == r|string %}selected{% endif %}>
+                        {{ r }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div>
+            <label for="keyword">Ключевое слово</label><br>
+            <input
+                id="keyword"
+                name="keyword"
+                type="text"
+                value="{{ filters.keyword }}"
+                placeholder="Например: доставка"
+            >
+        </div>
+
+        <div>
+            <button type="submit">Применить фильтры</button>
+            <a href="{{ url_for('main.index') }}">Сбросить фильтры</a>
+        </div>
+    </form>
+
     <h2>Список отзывов</h2>
 
     {% if reviews %}
@@ -82,7 +125,7 @@
             {% endfor %}
         </ul>
     {% else %}
-        <p>Отзывов пока нет. Добавьте первый!</p>
+        <p>Отзывы не найдены. Попробуйте изменить фильтры или добавить новый отзыв.</p>
     {% endif %}
 </body>
 </html>
