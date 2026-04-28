@@ -40,6 +40,7 @@ def init_db(app):
             author TEXT,
             rating INTEGER,
             sentiment TEXT NOT NULL DEFAULT 'neutral',
+            keywords TEXT,
             created_at TEXT NOT NULL DEFAULT current_timestamp
         )
         """
