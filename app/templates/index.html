@@ -1,57 +1,79 @@
 <!doctype html>
 <html lang="ru">
-  <head>
-    <meta charset="utf-8" />
+<head>
+    <meta charset="utf-8">
     <title>Review Analyzer</title>
-  </head>
-  <body>
+</head>
+<body>
     <h1>Review Analyzer</h1>
     <p>Здесь будет веб-приложение для сбора и анализа отзывов.</p>
 
     <h2>Добавить отзыв</h2>
+
+    {% if errors %}
+        <div style="color: darkred;">
+            <ul>
+                {% for error in errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    {% endif %}
+
     <form method="post">
-      <div>
-        <label for="text">Текст отзыва</label><br />
-        <textarea id="text" name="text" rows="4" cols="50" required></textarea>
-      </div>
+        <div>
+            <label for="text">Текст отзыва</label><br>
+            <textarea id="text" name="text" rows="4" cols="50" required>{{ form_data.text }}</textarea>
+        </div>
 
-      <div>
-        <label for="author">Автор (опционально)</label><br />
-        <input id="author" name="author" type="text" />
-      </div>
+        <div>
+            <label for="author">Автор (опционально)</label><br>
+            <input
+                id="author"
+                name="author"
+                type="text"
+                value="{{ form_data.author }}"
+            >
+        </div>
 
-      <div>
-        <label for="rating">Оценка</label><br />
-        <select id="rating" name="rating">
-          <option value="">Без оценки</option>
-          {% for r in range(1, 6) %}
-            <option value="{{ r }}">{{ r }}</option>
-            {% endfor %}
-        </select>
-      </div>
+        <div>
+            <label for="rating">Оценка</label><br>
+            <select id="rating" name="rating">
+                <option value="">Без оценки</option>
+                {% for r in range(1, 6) %}
+                    <option
+                        value="{{ r }}"
+                        {% if form_data.rating == r|string %}selected{% endif %}
+                    >
+                        {{ r }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
 
-      <div>
-        <button type="submit">Сохранить отзыв</button>
-      </div>
+        <div>
+            <button type="submit">Сохранить отзыв</button>
+        </div>
     </form>
 
     <h2>Список отзывов</h2>
+
     {% if reviews %}
-      <ul>
-        {% for review in reviews %}
-          <li>
-            <strong>{{ review["author"] }}:</strong>
-            {{ review["text"] }}
-            {% if review["rating"] is not none %}
-            — Оценка: {{ review["rating"] }}/5
-            {% endif %}
-            <br />
-            <small>Добавлен: {{ review["created_at"] }}</small>
-          </li>
-        {% endfor %}
-      </ul>
+        <ul>
+            {% for review in reviews %}
+                <li>
+                    <strong>{{ review["author"] }}</strong>:
+                    {{ review["text"] }}
+                    {% if review["rating"] is not none %}
+                        — Оценка: {{ review["rating"] }}/5
+                    {% endif %}
+                    <br>
+                    <small>Добавлен: {{ review["created_at"] }}</small>
+                </li>
+            {% endfor %}
+        </ul>
     {% else %}
-      <p>Отзывов пока нет. Добавьте первый!</p>
+        <p>Отзывов пока нет. Добавьте первый!</p>
     {% endif %}
-  </body>
+</body>
 </html>

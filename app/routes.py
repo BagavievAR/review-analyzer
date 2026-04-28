@@ -3,19 +3,38 @@ from . import get_db_connection
 
 bp = Blueprint("main", __name__)
 
+
 @bp.route("/", methods=["GET", "POST"])
 def index():
+    errors = []
+    form_data = {
+        "text": "",
+        "author": "",
+        "rating": "",
+    }
+
     if request.method == "POST":
         text = request.form.get("text", "").strip()
         author = request.form.get("author", "").strip()
         rating_raw = request.form.get("rating", "").strip()
 
-        if text:
-            try:
-                rating = int(rating_raw) if rating_raw else None
-            except ValueError:
-                rating = None
+        form_data["text"] = text
+        form_data["author"] = author
+        form_data["rating"] = rating_raw
 
+        if not text:
+            errors.append("Текст отзыва не должен быть пустым.")
+
+        rating = None
+        if rating_raw:
+            try:
+                rating = int(rating_raw)
+                if rating < 1 or rating > 5:
+                    errors.append("Оценка должна быть от 1 до 5.")
+            except ValueError:
+                errors.append("Оценка должна быть числом от 1 до 5.")
+
+        if not errors:
             conn = get_db_connection(current_app)
             cur = conn.cursor()
             cur.execute(
@@ -25,7 +44,7 @@ def index():
             conn.commit()
             conn.close()
 
-        return redirect(url_for("main.index"))
+            return redirect(url_for("main.index"))
 
     conn = get_db_connection(current_app)
     cur = conn.cursor()
@@ -36,4 +55,9 @@ def index():
     reviews = cur.fetchall()
     conn.close()
 
-    return render_template("index.html", reviews=reviews)
+    return render_template(
+        "index.html",
+        reviews=reviews,
+        errors=errors,
+        form_data=form_data,
+    )
