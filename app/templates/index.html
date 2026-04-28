@@ -64,9 +64,13 @@
                 <li>
                     <strong>{{ review["author"] }}</strong>:
                     {{ review["text"] }}
+
                     {% if review["rating"] is not none %}
                         — Оценка: {{ review["rating"] }}/5
                     {% endif %}
+
+                    — Тональность: {{ review["sentiment"] }}
+
                     <br>
                     <small>Добавлен: {{ review["created_at"] }}</small>
                 </li>
