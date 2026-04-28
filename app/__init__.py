@@ -38,9 +38,9 @@ def init_db(app):
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             text TEXT NOT NULL,
             author TEXT,
-            rating INTEGER,                         -- 1..5
-            created_at TEXT NOT NULL
-                DEFAULT current_timestamp           -- дата/время добавления
+            rating INTEGER,
+            sentiment TEXT NOT NULL DEFAULT 'neutral',
+            created_at TEXT NOT NULL DEFAULT current_timestamp
         )
         """
     )

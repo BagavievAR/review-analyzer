@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, request, redirect, url_for, current_app
 from . import get_db_connection
+from .analyzer import analyze_sentiment
 
 bp = Blueprint("main", __name__)
 
@@ -35,11 +36,13 @@ def index():
                 errors.append("Оценка должна быть числом от 1 до 5.")
 
         if not errors:
+            sentiment = analyze_sentiment(text)
+
             conn = get_db_connection(current_app)
             cur = conn.cursor()
             cur.execute(
-                "INSERT INTO reviews (text, author, rating) VALUES (?, ?, ?)",
-                (text, author or "Аноним", rating),
+                "INSERT INTO reviews (text, author, rating, sentiment) VALUES (?, ?, ?, ?)",
+                (text, author or "Аноним", rating, sentiment),
             )
             conn.commit()
             conn.close()
@@ -49,7 +52,7 @@ def index():
     conn = get_db_connection(current_app)
     cur = conn.cursor()
     cur.execute(
-        "SELECT id, text, author, rating, created_at "
+        "SELECT id, text, author, rating, sentiment, created_at "
         "FROM reviews ORDER BY id DESC"
     )
     reviews = cur.fetchall()
