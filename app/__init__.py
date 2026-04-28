@@ -8,9 +8,17 @@ def create_app():
         template_folder=os.path.join(os.path.dirname(__file__), "templates"),
     )
 
-    app.config["DATABASE"] = os.path.join(
-        os.path.dirname(os.path.dirname(__file__)), "reviews.db"
+    default_db_path = os.path.join(
+        os.path.dirname(os.path.dirname(__file__)),
+        "data",
+        "reviews.db"
     )
+
+    app.config["DATABASE"] = os.environ.get("DATABASE_PATH", default_db_path)
+
+    db_dir = os.path.dirname(app.config["DATABASE"])
+    if db_dir:
+        os.makedirs(db_dir, exist_ok=True)
 
     from . import routes
     app.register_blueprint(routes.bp)
