@@ -2,7 +2,7 @@ from flask import Flask
 import os
 import sqlite3
 
-def create_app():
+def create_app(test_config=None):
     app = Flask(
         __name__,
         template_folder=os.path.join(os.path.dirname(__file__), "templates"),
@@ -15,6 +15,9 @@ def create_app():
     )
 
     app.config["DATABASE"] = os.environ.get("DATABASE_PATH", default_db_path)
+
+    if test_config is not None:
+        app.config.update(test_config)
 
     db_dir = os.path.dirname(app.config["DATABASE"])
     if db_dir:
